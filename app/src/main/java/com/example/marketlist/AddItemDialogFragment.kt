@@ -11,10 +11,10 @@ import android.widget.Button
 import android.widget.EditText
 
 class AddItemDialogFragment : DialogFragment() {
-    private lateinit var itemList: MutableList<String>
-    private lateinit var adapter: ItemAdapter // Use your custom adapter type
+    private lateinit var itemList: MutableList<Item>
+    private lateinit var adapter: ItemAdapter
 
-    fun setItemListAndAdapter(itemList: MutableList<String>, adapter: ItemAdapter) {
+    fun setItemListAndAdapter(itemList: MutableList<Item>, adapter: ItemAdapter) {
         this.itemList = itemList
         this.adapter = adapter
     }
@@ -33,7 +33,7 @@ class AddItemDialogFragment : DialogFragment() {
         saveButton.setOnClickListener {
             val itemName = itemNameEditText.text.toString()
             if (itemName.isNotEmpty()) {
-                itemList.add(itemName)
+                itemList.add(Item(itemName)) // Create a new Item with the provided name
                 adapter.notifyDataSetChanged() // Notify the adapter of data changes
 
                 // Call the saveItemList function to save the updated list
@@ -60,10 +60,11 @@ class AddItemDialogFragment : DialogFragment() {
         val itemListKey = "itemList"
 
         val editor = sharedPreferences?.edit()
-        editor?.putStringSet(itemListKey, itemList.toSet())
+        val itemNames = itemList.map { it.name }.toSet()
+        editor?.putStringSet(itemListKey, itemNames)
         editor?.apply()
 
         // Log that an item has been saved
-        Log.d("AddItemDialogFragment", "Item saved: $itemList")
+        Log.d("AddItemDialogFragment", "Item saved: $itemNames")
     }
 }

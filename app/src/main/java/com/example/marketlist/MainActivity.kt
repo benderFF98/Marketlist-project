@@ -9,8 +9,10 @@ import android.widget.Button
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
+data class Item(val name: String, var isChecked: Boolean = false)
+
 class MainActivity : AppCompatActivity(), ItemAdapter.OnItemRemoveListener {
-    private val itemList = mutableListOf<String>() // Declare itemList as a class-level property
+    private val itemList = mutableListOf<Item>() // Use the Item data class
     private lateinit var adapter: ItemAdapter
     private lateinit var sharedPreferences: SharedPreferences
     private val sharedPrefName = "MySharedPreferences"
@@ -67,14 +69,15 @@ class MainActivity : AppCompatActivity(), ItemAdapter.OnItemRemoveListener {
         val savedItemList = sharedPreferences.getStringSet(itemListKey, HashSet())?.toMutableList()
         savedItemList?.let {
             itemList.clear()
-            itemList.addAll(it)
+            itemList.addAll(it.map { Item(it, false) }) // Initialize isChecked to false
             adapter.notifyDataSetChanged() // Update the RecyclerView
         }
     }
 
     private fun saveItemList() {
         val editor = sharedPreferences.edit()
-        editor.putStringSet(itemListKey, itemList.toSet())
+        val itemNames = itemList.map { it.name }.toSet()
+        editor.putStringSet(itemListKey, itemNames)
         editor.apply()
     }
 }
