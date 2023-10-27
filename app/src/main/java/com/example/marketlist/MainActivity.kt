@@ -1,6 +1,7 @@
 package com.example.marketlist
 
-import AddItemDialogFragment
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -8,14 +9,19 @@ import android.widget.Button
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
-
 class MainActivity : AppCompatActivity(), ItemAdapter.OnItemRemoveListener {
     private val itemList = mutableListOf<String>() // Declare itemList as a class-level property
     private lateinit var adapter: ItemAdapter
+    private lateinit var sharedPreferences: SharedPreferences
+    private val sharedPrefName = "MySharedPreferences"
+    private val itemListKey = "itemList"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Initialize SharedPreferences
+        sharedPreferences = getSharedPreferences(sharedPrefName, Context.MODE_PRIVATE)
 
         // Find the button by its ID
         val addItemButton = findViewById<Button>(R.id.addItemButton)
@@ -24,10 +30,13 @@ class MainActivity : AppCompatActivity(), ItemAdapter.OnItemRemoveListener {
         adapter = ItemAdapter(itemList) // Initialize the adapter here
 
         // Set the item removal listener
-        adapter.setOnItemRemoveListener(this) // Assuming your MainActivity implements the OnItemRemoveListener
+        adapter.setOnItemRemoveListener(this)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
+
+        // Load the saved item list (if any) after initializing the adapter
+        loadItemList()
 
         // Set a click listener for the button
         addItemButton.setOnClickListener {
@@ -41,13 +50,31 @@ class MainActivity : AppCompatActivity(), ItemAdapter.OnItemRemoveListener {
     override fun onItemRemove(position: Int) {
         if (position >= 0 && position < itemList.size) {
             // Log the itemList before item removal
-            Log.d("MainActivity", "Item list before removal: $itemList")
+            Log.d("com.example.marketlist.MainActivity", "Item list before removal: $itemList")
 
             itemList.removeAt(position)
             adapter.notifyItemRemoved(position)
 
+            // Save the updated list
+            saveItemList()
+
             // Log the itemList after item removal
-            Log.d("MainActivity", "Item list after removal: $itemList")
+            Log.d("com.example.marketlist.MainActivity", "Item list after removal: $itemList")
         }
+    }
+
+    private fun loadItemList() {
+        val savedItemList = sharedPreferences.getStringSet(itemListKey, HashSet())?.toMutableList()
+        savedItemList?.let {
+            itemList.clear()
+            itemList.addAll(it)
+            adapter.notifyDataSetChanged() // Update the RecyclerView
+        }
+    }
+
+    private fun saveItemList() {
+        val editor = sharedPreferences.edit()
+        editor.putStringSet(itemListKey, itemList.toSet())
+        editor.apply()
     }
 }

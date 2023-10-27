@@ -1,12 +1,14 @@
+package com.example.marketlist
+
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.DialogFragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
-import com.example.marketlist.ItemAdapter
-import com.example.marketlist.R // Replace with your app's package name
 
 class AddItemDialogFragment : DialogFragment() {
     private lateinit var itemList: MutableList<String>
@@ -33,6 +35,10 @@ class AddItemDialogFragment : DialogFragment() {
             if (itemName.isNotEmpty()) {
                 itemList.add(itemName)
                 adapter.notifyDataSetChanged() // Notify the adapter of data changes
+
+                // Call the saveItemList function to save the updated list
+                saveItemList()
+
                 dismiss()
             }
 
@@ -46,5 +52,18 @@ class AddItemDialogFragment : DialogFragment() {
         }
 
         return view
+    }
+
+    private fun saveItemList() {
+        // Initialize SharedPreferences
+        val sharedPreferences = context?.getSharedPreferences("MySharedPreferences", Context.MODE_PRIVATE)
+        val itemListKey = "itemList"
+
+        val editor = sharedPreferences?.edit()
+        editor?.putStringSet(itemListKey, itemList.toSet())
+        editor?.apply()
+
+        // Log that an item has been saved
+        Log.d("AddItemDialogFragment", "Item saved: $itemList")
     }
 }
